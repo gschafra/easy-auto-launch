@@ -22,6 +22,7 @@ module.exports = class AutoLaunch {
 		isHidden: boolean;
 		mac: Object;
 		path: string;
+		fallback?: boolean;
 	}) {
 
 		this.enable = this.enable.bind(this);

@@ -1,6 +1,6 @@
 {
 	"name": "easy-auto-launch",
-	"version": "6.0.2",
+	"version": "7.0.0",
 	"description": "Launch node applications or executables at login (Mac, Windows, and Linux)",
 	"main": "dist/easy-auto-launch.js",
 	"types": "dist/easy-auto-launch.d.ts",
@@ -14,7 +14,7 @@
 	},
 	"repository": {
 		"type": "git",
-		"url": "https://github.com/Izurii/easy-auto-launch"
+		"url": "https://gitlab.itx.de/projects-internal/easy-auto-launch.git"
 	},
 	"keywords": [
 		"login",
@@ -28,7 +28,7 @@
 	"contributors": [],
 	"license": "GPL-3.0-or-later",
 	"bugs": {
-		"url": "https://github.com/Izurii/easy-auto-launch/issues"
+		"url": "https://gitlab.itx.de/projects-internal/easy-auto-launch.git/-/issues"
 	},
 	"devDependencies": {
 		"@types/mkdirp": "^1.0.2",
@@ -36,11 +36,15 @@
 		"@types/winreg": "^1.2.31",
 		"typescript": "^4.5.4"
 	},
-	"homepage": "https://github.com/Izurii/easy-auto-launch",
+	"homepage": "https://gitlab.itx.de/projects-internal/easy-auto-launch",
 	"dependencies": {
 		"applescript": "^1.0.0",
 		"mkdirp": "^1.0.4",
+		"native-reg": "^1.1.0",
 		"untildify": "^4.0.0",
-		"winreg": "^1.2.4"
+		"winlink": "^1.0.2"
+	},
+	"publishConfig": {
+		"registry": "https://nexus.itx.de/repository/npm-hosted"
 	}
 }

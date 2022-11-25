@@ -1,17 +1,15 @@
-import { existsSync } from "fs";
+import { existsSync, unlinkSync } from 'fs';
+import { Access, openKey, HKCU, HKEY, setValueSZ, queryValue, deleteValue } from "native-reg";
 import { join, dirname, basename } from "path";
-import Winreg, { HKCU, REG_SZ } from "winreg";
-
-const regKey = new Winreg({
-	hive: HKCU,
-	key: "\\Software\\Microsoft\\Windows\\CurrentVersion\\Run",
-});
+const winlink = require("winlink");
 
 export interface AutoLaunchWindows {
 	enable: typeof enable;
 	disable: typeof disable;
 	isEnabled: typeof isEnabled;
 }
+
+const startupFolder = join(process.env.APPDATA || '', "Microsoft", "Windows", "Start Menu", "Programs", "Startup");
 
 export function enable({ appName, appPath, isHiddenOnLaunch }: {
 	appName: string;
@@ -46,45 +44,68 @@ export function enable({ appName, appPath, isHiddenOnLaunch }: {
 			}
 		}
 
-		return regKey.set(
-			appName,
-			REG_SZ,
-			`\"${pathToAutoLaunchedApp}\"${args}`,
-			function (err) {
-				if (err != null) {
+		try {
+			const key = openAutostartKey();
+			setValueSZ(key, appName, `"${pathToAutoLaunchedApp}"${args}`);
+		} catch (error) {
+			// Apply fallback via auto-lauch entry in startmenu
+			winlink.writeFile(join(startupFolder, `${appName}.lnk`), pathToAutoLaunchedApp, args, function (err: any) {
+				if (err) {
 					return reject(err);
+				} else {
+					return resolve(true);
 				}
-				return resolve(true);
-			}
-		);
+			});
+		}
+
+		resolve(true);
 	});
 }
 export function disable(appName: string) {
-	return new Promise<boolean | Error>((resolve, reject) =>
-		regKey.remove(appName, function (err) {
-			if (err != null) {
-				// The registry key should exist but in case it fails because it doesn't exist, resolve false instead
-				// rejecting with an error
-				if (
-					err.message.indexOf(
-						"The system was unable to find the specified registry key or value"
-					) !== -1
-				) {
-					return resolve(false);
-				}
-				return reject(err);
+	return new Promise<boolean | Error>((resolve, reject) => {
+		try {
+			if (existsSync(join(startupFolder, `${appName}.lnk`))) {
+				unlinkSync(join(startupFolder, `${appName}.lnk`));
 			}
-			return resolve(true);
-		})
-	);
+
+			const key = openAutostartKey();
+			if (queryValue(key, appName) != null) {
+				deleteValue(key, appName);
+			}
+		} catch (error) { 
+			return reject(error);
+		}
+
+		resolve(true);
+	});
 }
 export function isEnabled(appName: string) {
-	return new Promise<boolean>((resolve) =>
-		regKey.get(appName, function (err, item) {
-			if (err != null) {
-				return resolve(false);
+	return new Promise<boolean | Error>((resolve, reject) => {
+		try {
+			if (existsSync(join(startupFolder, `${appName}.lnk`))) {
+				return resolve(true);
 			}
-			return resolve(item != null);
-		})
-	);
+
+			const key = openAutostartKey();
+			if (queryValue(key, appName) != null) {
+				return resolve(true);
+			}
+		} catch (error) { 
+			return reject(error);
+		}
+
+		resolve(false);
+	});
+}
+
+/**
+ * @throws {Error} if the key cannot be opened
+ * @returns HKEY|null
+ */
+function openAutostartKey(): HKEY {
+	const key = openKey(HKCU, "\\Software\\Microsoft\\Windows\\CurrentVersion\\Run", Access.ALL_ACCESS);
+	if (key == null) {
+		throw new Error("Cannot open registry key");
+	}
+	return key;
 }

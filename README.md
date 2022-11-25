@@ -1,7 +1,7 @@
 easy-auto-launch
 ==============
 
-[![NPM version][npm-image]][npm-url] [![Dependency Status][depstat-image]][depstat-url]
+This is a fork of [easy-auto-launch](https://github.com/Izurii/easy-auto-launch) with use of [native-reg](https://github.com/simonbuchan/native-reg) and Windows autostart creation fallback mechanism (autostart startmenu shortcut) using [winlink](https://github.com/GeraldWodni/winlink)
 
 ---
 
